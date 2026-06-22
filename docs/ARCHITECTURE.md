@@ -1,171 +1,113 @@
-# Xspatula Architecture
+---
+layout: page
+title: Architecture
+---
 
-## Purpose
+# Architecture
 
-Xspatula is being converted into an installable Python package with a compatibility-first approach.
+## Current Goal
 
-The goal of the first phase is NOT redesign.
+The current goal is packaging.
 
-The goal is preserving all existing notebook workflows while making Xspatula importable as a Python library.
+The current goal is NOT redesign.
+
+Xspatula should first become a stable importable Python package before any architectural refactoring occurs.
 
 ---
 
-## Public API
-
-### Core API
-
-```python
-from xspatula import Initiate_process
-from xspatula.lib import Initiate_process
-```
-
-Legacy compatibility:
-
-```python
-from src.lib import Initiate_process
-```
-
-### Setup API
-
-```python
-from xspatula.setup import Initiate_database
-from xspatula.setup import Run_process
-```
-
-Legacy compatibility:
-
-```python
-from src_setup.lib_setup import Initiate_database
-from src_setup.lib_setup import Run_process
-```
-
----
-
-## Package Structure
+# High-Level Structure
 
 ```text
-xspatula/
-├── docs/
-├── tests/
-├── src/
-│   ├── __init__.py
-│   └── lib.py
-├── src_setup/
-│   ├── __init__.py
-│   └── lib_setup.py
-├── xspatula/
-│   ├── __init__.py
-│   ├── lib/
-│   ├── postgres/
-│   ├── setup/
-│   └── utils/
-├── pyproject.toml
-├── README.md
-└── .gitignore
+xspatula
+├── lib
+├── postgres
+├── setup
+├── utils
+├── src
+└── src_setup
 ```
 
 ---
 
-## Entry Points
+# Runtime Entry Points
 
-### Initiate_process
+## Initiate_process
 
-Primary runtime bootstrapper used by notebooks.
+Primary runtime bootstrapper.
 
 Responsibilities:
 
-* Load scheme
-* Resolve project paths
-* Resolve process definitions
-* Create runtime process structure
+- Load scheme
+- Resolve project path
+- Resolve process definition
+- Initialize runtime structures
 
-### Run_process
+---
+
+## Run_process
 
 Primary process dispatcher.
 
 Responsibilities:
 
-* Execute configured process
-* Execute jobs
-* Execute pilot lists
-* Execute pilot files
+- Execute process files
+- Execute pilot files
+- Execute pilot lists
+- Execute jobs
 
-### Initiate_database
+---
 
-Database bootstrap entrypoint.
+## Initiate_database
+
+Database bootstrapper.
 
 Responsibilities:
 
-* Create schemas
-* Create tables
-* Create roles
-* Delete database structures
-* Setup environment
+- Create schemas
+- Create tables
+- Create database roles
+- Setup environments
 
 ---
 
-## Compatibility Rules
+# Runtime Contracts
 
-1. Preserve original function names.
-2. Preserve original class names.
-3. Preserve original JSON structures.
-4. Preserve notebook imports.
-5. Preserve process contracts.
-6. Preserve scheme contracts.
-7. Prefer compatibility over cleanup.
+## Scheme Contract
 
----
+Scheme JSON defines:
 
-## Known Runtime Contracts
-
-### Scheme
-
-scheme JSON controls:
-
-* project path
-* database settings
-* runtime configuration
-
-### Process JSON
-
-Process files describe:
-
-* process flow
-* execution order
-* runtime parameters
-
-### Job JSON
-
-Job files describe:
-
-* data import jobs
-* translation jobs
-* management jobs
-
-### Pilot Contracts
-
-Supported runtime dispatch patterns:
-
-* pilot_list
-* pilot_file
-* single process
+- project path
+- environment settings
+- database configuration
 
 ---
 
-## Refactor Policy
+## Process Contract
 
-Allowed:
+Process JSON defines:
 
-* package extraction
-* import cleanup
-* dependency cleanup
-* packaging
+- execution flow
+- runtime parameters
+- process dependencies
 
-Not Allowed:
+---
 
-* process redesign
-* notebook redesign
-* JSON redesign
-* dispatcher redesign
+## Job Contract
 
-Until full compatibility coverage exists.
+Job JSON defines:
+
+- import jobs
+- translation jobs
+- management jobs
+
+---
+
+# Compatibility Policy
+
+Preserve:
+
+- names
+- signatures
+- JSON structures
+- notebook workflows
+- process dispatch behavior

@@ -1,0 +1,19 @@
+title: Xspatula
+description: Compatibility-first Python library packaging of Xspatula
+theme: minima
+
+markdown: kramdown
+highlighter: rouge
+
+plugins:
+  - jekyll-feed
+
+header_pages:
+  - architecture.md
+  - installation.md
+  - api.md
+  - compatibility.md
+  - development.md
+
+github_username: persiansushiant
+repository: persiansushiant/xspatula
