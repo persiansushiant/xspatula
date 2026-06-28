@@ -23,7 +23,6 @@ from tabnanny import verbose
 
 from psycopg2 import sql as pgsql
 
-
 # Operators permitted in _Dict_to_select WHERE clauses
 _VALID_OPS = frozenset({'=', '!=', '<>', '<', '>', '<=', '>=', 'LIKE', 'ILIKE', 'IS', 'IS NOT', 'BETWEEN'})
 
