@@ -18,18 +18,16 @@ def Get_user_response_boolean(prompt_text, interactive=True, default_response="y
     """
     Prompt user for yes/no confirmation.
 
-    If interactive=False, return default_response without calling input().
-    This keeps notebooks interactive while allowing Flask/API/headless runs.
+    If interactive=False, return default_response silently.
     """
+
+    if not interactive:
+        print("⚙️ Headless mode: auto-confirmed <%s>" % prompt_text)
+        return default_response
 
     print("\n⚠️    ✅  %s?: y\n      ❌ To skip/quit: n\n" % prompt_text)
 
-    if not interactive:
-        print("⚙️ Headless mode: auto-answering <%s>" % default_response)
-        return default_response
-
     return input("⚠️ %s (y); stop(n): " % prompt_text)
-
 
 def Delete_db_environments(notebook_FP):
     """
