@@ -2,8 +2,7 @@ from pathlib import Path
 
 from xspatula import Initiate_process
 from xspatula.setup import Initiate_database, Run_process
-
-
+from .pipeline import XspatulaPipeline
 class Xpatula:
     def __init__(self, setup_path="."):
         self.setup_path = Path(setup_path).resolve()
