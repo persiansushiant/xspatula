@@ -3,7 +3,9 @@ from pathlib import Path
 from xspatula import Initiate_process
 from xspatula.setup import Initiate_database, Run_process
 
+from .graph import default_graph_types, graph_capabilities
 from .pipeline import XspatulaPipeline
+from .schema_graph import XspatulaSchemaGraph
 
 
 class Xpatula:
@@ -25,6 +27,7 @@ class Xpatula:
         self.job_file = None
 
         self.pipeline = XspatulaPipeline(self)
+        self.schema_graph = XspatulaSchemaGraph(self)
 
     def scheme(self, name_or_path):
         self.scheme_file = self.DEFAULT_SCHEMES.get(name_or_path, name_or_path)
@@ -48,9 +51,46 @@ class Xpatula:
     def pilot_file(self, value):
         self.job_file = value
 
+    def describe(self):
+        return {
+            "name": "Xspatula",
+            "setup_path": str(self.setup_path),
+            "api_version": "2.7.0",
+            "available_schemes": self.DEFAULT_SCHEMES,
+            "available_jobs": self.DEFAULT_JOBS,
+            "selected": {
+                "scheme_file": self.scheme_file,
+                "job_file": self.job_file,
+                "pilot_file": self.job_file,
+            },
+            "features": graph_capabilities(),
+            "graphs": default_graph_types(),
+            "methods": [
+                "scheme(name_or_path)",
+                "job(name_or_path)",
+                "set_scheme(path)",
+                "set_pilot(path)",
+                "plan()",
+                "run_database(interactive=True)",
+                "run_processes()",
+                "create_database(interactive=True)",
+                "setup_processes()",
+                "delete_database(interactive=True)",
+                "build_pipeline()",
+                "build_schema_graph(schema_name=None)",
+                "describe()",
+            ],
+        }
+
     def build_pipeline(self):
         self._require_ready()
         return self.pipeline.build()
+
+    def build_schema_graph(self, schema_name=None):
+        if schema_name:
+            return self.schema_graph.build_for_schema(schema_name)
+
+        return self.schema_graph.build()
 
     def _require_ready(self):
         if not self.scheme_file:
@@ -102,7 +142,10 @@ class Xpatula:
         )
 
         if structured_process_D is not None:
-            return Run_process(structured_process_D, scheme_params_D)
+            return Run_process(
+                structured_process_D,
+                scheme_params_D,
+            )
 
         return None
 
