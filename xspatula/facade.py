@@ -7,62 +7,77 @@ from .pipeline import XspatulaPipeline
 
 
 class Xpatula:
+    DEFAULT_SCHEMES = {
+        "setup": "./zzz/scheme_ai4sh_local_setup.json",
+        "use": "./zzz/scheme_ai4sh_local_use.json",
+        "delete": "./zzz/scheme_ai4sh_local_delete.json",
+    }
+
+    DEFAULT_JOBS = {
+        "setup_db": "job_setup_db.json",
+        "setup_processes": "job_setup_processes.json",
+        "delete_db": "job_delete_db.json",
+    }
+
     def __init__(self, setup_path="."):
         self.setup_path = Path(setup_path).resolve()
         self.scheme_file = None
-        self.pilot_file = None
+        self.job_file = None
 
-        # Pipeline subsystem
         self.pipeline = XspatulaPipeline(self)
 
-    def set_scheme(self, scheme_path):
-        self.scheme_file = scheme_path
+    def scheme(self, name_or_path):
+        self.scheme_file = self.DEFAULT_SCHEMES.get(name_or_path, name_or_path)
         return self
+
+    def job(self, name_or_path):
+        self.job_file = self.DEFAULT_JOBS.get(name_or_path, name_or_path)
+        return self
+
+    def set_scheme(self, scheme_path):
+        return self.scheme(scheme_path)
 
     def set_pilot(self, pilot_path):
-        self.pilot_file = pilot_path
-        return self
+        return self.job(pilot_path)
 
-    def scheme(self, scheme_path):
-        return self.set_scheme(scheme_path)
+    @property
+    def pilot_file(self):
+        return self.job_file
 
-    def pilot(self, pilot_path):
-        return self.set_pilot(pilot_path)
+    @pilot_file.setter
+    def pilot_file(self, value):
+        self.job_file = value
 
     def build_pipeline(self):
-        """
-        Return a graph representation of the current execution pipeline.
-        Launcher is responsible for rendering.
-        """
         self._require_ready()
         return self.pipeline.build()
 
     def _require_ready(self):
         if not self.scheme_file:
-            raise ValueError(
-                "No scheme selected. Call xp.set_scheme(...) first."
-            )
+            raise ValueError("No scheme selected. Call xp.scheme(...) first.")
 
-        if not self.pilot_file:
-            raise ValueError(
-                "No pilot selected. Call xp.set_pilot(...) first."
-            )
+        if not self.job_file:
+            raise ValueError("No job selected. Call xp.job(...) first.")
 
     def plan(self):
         self._require_ready()
 
         scheme_abs = (self.setup_path / self.scheme_file).resolve()
+        job_abs = (self.setup_path / self.job_file).resolve()
 
         return {
             "setup_path": str(self.setup_path),
             "scheme_file": self.scheme_file,
             "scheme_abs_path": str(scheme_abs),
-            "pilot_file": self.pilot_file,
+            "job_file": self.job_file,
+            "pilot_file": self.job_file,
+            "job_abs_path": str(job_abs),
             "execution_steps": [
                 "Load scheme file",
                 "Resolve project path",
-                "Load pilot file",
+                "Load job file",
                 "Resolve process files",
+                "Dispatch process definitions",
                 "Run selected workflow",
             ],
         }
@@ -73,7 +88,7 @@ class Xpatula:
         return Initiate_database(
             str(self.setup_path),
             self.scheme_file,
-            self.pilot_file,
+            self.job_file,
             interactive=interactive,
         )
 
@@ -83,13 +98,34 @@ class Xpatula:
         structured_process_D, scheme_params_D = Initiate_process(
             str(self.setup_path),
             self.scheme_file,
-            self.pilot_file,
+            self.job_file,
         )
 
         if structured_process_D is not None:
-            return Run_process(
-                structured_process_D,
-                scheme_params_D,
-            )
+            return Run_process(structured_process_D, scheme_params_D)
 
         return None
+
+    def create_database(self, interactive=True):
+        return (
+            self
+            .scheme("setup")
+            .job("setup_db")
+            .run_database(interactive=interactive)
+        )
+
+    def setup_processes(self):
+        return (
+            self
+            .scheme("use")
+            .job("setup_processes")
+            .run_processes()
+        )
+
+    def delete_database(self, interactive=True):
+        return (
+            self
+            .scheme("delete")
+            .job("delete_db")
+            .run_database(interactive=interactive)
+        )
